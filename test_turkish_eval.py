@@ -131,7 +131,7 @@ class ShippedSet(unittest.TestCase):
                 passed, details = te.autograde_item(item, item["reference"])
                 self.assertTrue(passed, (item["id"], details))
 
-    def test_empty_response_fails_every_automatic_item(self):
+    def test_empty_response_fails_all(self):
         for item in load_items():
             if item.get("auto"):
                 passed, _ = te.autograde_item(item, "")
@@ -250,7 +250,7 @@ class Validation(unittest.TestCase):
         self.assertTrue(any("magic" in p or "kind" in p for p in problems))
         self.assertTrue(any("non-empty list" in p for p in problems))
 
-    def test_reference_that_fails_its_checks_is_reported(self):
+    def test_bad_reference_reported(self):
         def mutate(items):
             target = next(i for i in items if i["id"] == "bilgi-il")
             target["reference"] = "80"
@@ -337,7 +337,7 @@ class Cli(unittest.TestCase):
         with open(out_path, encoding="utf-8") as f:
             self.assertIn("Gelire göre harca.", f.read())  # readable UTF-8, not escapes
 
-    def test_export_refuses_to_overwrite_inputs_and_empty_output(self):
+    def test_export_wont_overwrite_inputs(self):
         responses = self.write_responses("r.jsonl", {"bilgi-il": "81"})
         code, _, err = run("export", PROMPTS, responses, PROMPTS)
         self.assertEqual(code, 2)
@@ -361,7 +361,7 @@ class Cli(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(read_text(responses), before)
 
-    def test_export_with_lone_surrogate_leaves_no_file(self):
+    def test_export_lone_surrogate(self):
         with open(self.path("r.jsonl"), "w", encoding="utf-8") as f:
             f.write('{"id": "bilgi-il", "response": "81 \\ud800"}\n')
         code, _, err = run("export", PROMPTS, self.path("r.jsonl"), self.path("o.jsonl"))
